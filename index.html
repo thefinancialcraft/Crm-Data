@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Data</title>
+</head>
+<link rel="stylesheet" href="style.css">
+<body>
+
+
+    <div id="spinnerDiv" class="spiner-box">
+        <div class="spinner"></div>
+       
+    </div>
+
+
+    <button style="display: none;" onclick="backtohome()" id="backtohome"><i class="fi fi-br-angle-left"></i></button>
+    <button  style="display: none;"  id="backtotop"><i class="fi fi-br-angle-left"></i></button>
+
+    
+
+    <div class="content">
+
+
+    <h2>CRM DATA DETAILS </h2>
+
+    <div class="date-sd">
+    <div class="date-selection">
+
+    <input type="date" class="dateInput" id="startDate" required>
+    <input type="date" class="dateInput" id="endDate" required>
+    <button onclick="reload()">Apply</button>
+    <button style="background-color: coral;" onclick="convertToImage(this)">Print</button>
+</div>
+    </div>
+
+    <div id="callersTable" class="calltabel">
+
+  <table   id="callersTable">
+   
+    <thead>
+      <tr>
+        <!-- Dynamic headers will be inserted here -->
+      </tr>
+    </thead>
+
+
+
+
+    <tbody>
+      <!-- Data rows will be inserted here -->
+    </tbody>
+  </table>
+
+</div>
+
+
+</div>
+
+  <div style="display: none;" id="callhistorytabel" class="calltabel callhistorytabel">
+
+
+
+    <h4>Call History Details</h4>
+    <span></span>
+  <table id="pidTypeCountsTable">
+    <thead>
+      <tr>
+          </tr>
+    </thead>
+    <tbody>
+      <!-- Type counts will be dynamically inserted here -->
+    </tbody>
+  </table>
+  
+  </div>
+  
+ 
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+</body>
+</html>
+
+
+
