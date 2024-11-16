@@ -275,7 +275,7 @@ function segregateAndPopulateData(memberdata, activityData) {
   const callerPidsDetails = new Map();
 
   // List of usernames to exclude
-  const excludeUsernames = new Set(['smilingajai@gmail.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
+  const excludeUsernames = new Set(['smilingajai@gmail.com', 'Akash@tfc.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
 
   // Map member details by email (username) for quick lookup
   const memberMap = new Map();
