@@ -483,8 +483,8 @@ function segregateAndPopulateData(memberdata, activityData) {
     th:nth-child(1), td:nth-child(1),
     th:nth-child(2), td:nth-child(2) {
       position: sticky;
-      // left: 0;
-      // background-color: #fff;
+      left: 0;
+      background-color:  rgb(245, 245, 245);   
       z-index: 1;
     }
   `;
