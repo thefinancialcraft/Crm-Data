@@ -136,7 +136,8 @@ body::-webkit-scrollbar{
         height: 30px;
         border: 1px solid rgb(255, 255, 255);
         /* padding-left: 10px; */
-        width: 110px;
+        min-width: 110px;
+        width: 10%;
         /* min-width: 70px; */
         text-align: center;
         margin-left: 10px;
