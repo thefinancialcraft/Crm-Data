@@ -332,7 +332,6 @@ function segregateAndPopulateData(memberdata, activityData) {
   const summaryHeaderCell = document.createElement('th');
   summaryHeaderCell.textContent = "Call Types";
   tableHeaderRow.appendChild(summaryHeaderCell);
-  
 
   const durationHeader = document.createElement('th');
   durationHeader.textContent = "Total Duration (hh:mm:ss)";
@@ -381,32 +380,28 @@ function segregateAndPopulateData(memberdata, activityData) {
       lastActivityCell.textContent = '--';
     }
 
-
     const summaryCell = row.insertCell();
-const typeSummaries = [];
+    const typeSummaries = [];
 
-uniqueTypes.forEach(type => {
-  if (details.types[type]) {
-    typeSummaries.push(`${type}: ${details.types[type]}`);
-  }
-});
+    uniqueTypes.forEach(type => {
+      if (details.types[type]) {
+        typeSummaries.push(`${type}: ${details.types[type]}`);
+      }
+    });
 
-// Join summaries with line breaks for better readability
-summaryCell.textContent = typeSummaries.length ? typeSummaries.join('\n') : '--';
-summaryCell.style.whiteSpace = 'pre-line'; // Ensure line breaks are displayed
+    // Join summaries with line breaks for better readability
+    summaryCell.textContent = typeSummaries.length ? typeSummaries.join('\n') : '--';
+    summaryCell.style.whiteSpace = 'pre-line'; // Ensure line breaks are displayed
 
-// Add click event listener
-summaryCell.style.cursor = 'pointer'; // Make cell look clickable
-summaryCell.addEventListener('click', function () {
-  // Call the showPidTypeCounts function with the caller and associated entries
-  showPidTypeCounts(caller, details.entries);
-  document.getElementById("callhistorytabel").style.display = "flex"
-  document.getElementById("backtohome").style.display = "flex"
-  document.getElementById("callersTable").style.display = "none"
-});
-
-
-
+    // Add click event listener
+    summaryCell.style.cursor = 'pointer'; // Make cell look clickable
+    summaryCell.addEventListener('click', function () {
+      // Call the showPidTypeCounts function with the caller and associated entries
+      showPidTypeCounts(caller, details.entries);
+      document.getElementById("callhistorytabel").style.display = "flex";
+      document.getElementById("backtohome").style.display = "flex";
+      document.getElementById("callersTable").style.display = "none";
+    });
 
     const durationCell = row.insertCell();
     durationCell.textContent = details.totalDuration ? formatDuration(details.totalDuration) : '--';
@@ -482,6 +477,33 @@ summaryCell.addEventListener('click', function () {
       }
     }
   });
+
+  // Add CSS for sticky columns
+  const stickyColumnsStyle = `
+    th:nth-child(1), td:nth-child(1),
+    th:nth-child(2), td:nth-child(2) {
+      position: sticky;
+      // left: 0;
+      // background-color: #fff;
+      z-index: 1;
+    }
+  `;
+  
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = stickyColumnsStyle;
+  document.head.appendChild(styleElement);
+}
+
+// Format duration in hh:mm:ss
+function formatDuration(duration) {
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = duration % 60;
+  return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+
+function padZero(num) {
+  return num < 10 ? '0' + num : num;
 }
 
 
