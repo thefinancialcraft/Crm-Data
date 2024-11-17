@@ -329,11 +329,10 @@ function segregateAndPopulateData(memberdata, activityData) {
   const tableHeaderRow = document.getElementById("callersTable").getElementsByTagName('thead')[0].rows[0];
   tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity (Formatted)</th>'; // Adjust header columns
 
-  uniqueTypes.forEach(type => {
-    const headerCell = document.createElement('th');
-    headerCell.textContent = type;
-    tableHeaderRow.appendChild(headerCell);
-  });
+  const summaryHeaderCell = document.createElement('th');
+  summaryHeaderCell.textContent = "Call Types";
+  tableHeaderRow.appendChild(summaryHeaderCell);
+  
 
   const durationHeader = document.createElement('th');
   durationHeader.textContent = "Total Duration (hh:mm:ss)";
@@ -382,10 +381,32 @@ function segregateAndPopulateData(memberdata, activityData) {
       lastActivityCell.textContent = '--';
     }
 
-    uniqueTypes.forEach(type => {
-      const cell = row.insertCell();
-      cell.textContent = details.types[type] || '--';
-    });
+
+    const summaryCell = row.insertCell();
+const typeSummaries = [];
+
+uniqueTypes.forEach(type => {
+  if (details.types[type]) {
+    typeSummaries.push(`${type}: ${details.types[type]}`);
+  }
+});
+
+// Join summaries with line breaks for better readability
+summaryCell.textContent = typeSummaries.length ? typeSummaries.join('\n') : '--';
+summaryCell.style.whiteSpace = 'pre-line'; // Ensure line breaks are displayed
+
+// Add click event listener
+summaryCell.style.cursor = 'pointer'; // Make cell look clickable
+summaryCell.addEventListener('click', function () {
+  // Call the showPidTypeCounts function with the caller and associated entries
+  showPidTypeCounts(caller, details.entries);
+  document.getElementById("callhistorytabel").style.display = "flex"
+  document.getElementById("backtohome").style.display = "flex"
+  document.getElementById("callersTable").style.display = "none"
+});
+
+
+
 
     const durationCell = row.insertCell();
     durationCell.textContent = details.totalDuration ? formatDuration(details.totalDuration) : '--';
@@ -421,6 +442,7 @@ function segregateAndPopulateData(memberdata, activityData) {
 
     // Add click event to show details in pidTypeCountsTable
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
+    pidTypeCountsCell.style.whiteSpace = 'pre-line';
     pidTypeCountsCell.style.cursor = 'pointer';
     pidTypeCountsCell.addEventListener('click', function() {
       showPidTypeCounts(caller, pidData ? pidData.entriesWithPid : []);
@@ -484,17 +506,15 @@ Array.from(dateInputs).forEach((dateInput) => {
 
 // Function to show detailed entries in the pidTypeCountsTable
 function showPidTypeCounts(caller, entries) {
-
   showSpinner();
 
-  document.getElementById("callhistorytabel").style.display = "flex"
-  document.getElementById("backtohome").style.display = "flex"
-  document.getElementById("callersTable").style.display = "none"
-  
+  document.getElementById("callhistorytabel").style.display = "flex";
+  document.getElementById("backtohome").style.display = "flex";
+  document.getElementById("callersTable").style.display = "none";
 
   const pidTypeCountsTableBody = document.getElementById("pidTypeCountsTable").getElementsByTagName('tbody')[0];
   const pidTypeCountsTableHeader = document.getElementById("pidTypeCountsTable").getElementsByTagName('thead')[0].rows[0];
-  
+
   pidTypeCountsTableBody.innerHTML = ''; // Clear the existing rows
 
   // Update table header with the new order of columns
@@ -504,31 +524,40 @@ function showPidTypeCounts(caller, entries) {
     <th>Type</th>
     <th>Start Date</th>
     <th>Duration</th>
-    <th>Call Status</th> <!-- New column for Call Status -->
-    <th>Call Type</th> <!-- New column for Call Type -->
-    <th>Dial Count</th> <!-- New column for Dial Count -->
-    <th>PID</th> <!-- New column for PID -->
+    <th>Call Status</th>
+    <th>Call Type</th>
+    <th>Dial Count</th>
+    <th>PID</th>
   `;
 
-  // Group entries by PID and sort them by start date
-  const pidMap = new Map();
+  // Helper function to normalize phone numbers to the last 10 digits
+  const normalizePhone = (phone) => {
+    if (!phone) return null;
+    const cleanedPhone = phone.replace(/\D/g, ''); // Remove non-digit characters
+    return cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone; // Keep only the last 10 digits
+  };
+
+  // Group entries by normalized phone number
+  const phoneMap = new Map();
   entries.forEach(entry => {
-    if (!pidMap.has(entry.pid)) {
-      pidMap.set(entry.pid, []);
+    const normalizedPhone = normalizePhone(entry.phone);
+    if (!normalizedPhone) return; // Skip if phone is null or invalid
+    if (!phoneMap.has(normalizedPhone)) {
+      phoneMap.set(normalizedPhone, []);
     }
-    pidMap.get(entry.pid).push(entry);
+    phoneMap.get(normalizedPhone).push(entry);
   });
 
-  // Loop through each PID group and sort by start date
-  pidMap.forEach((pidEntries, pid) => {
+  // Loop through each phone group and sort by start date
+  phoneMap.forEach((phoneEntries, phone) => {
     // Sort entries by start date (ascending)
-    pidEntries.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    phoneEntries.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-    // Track the redial count for each PID based on the earliest start date
-    let dialCount = 0;
+    // Track the redial count for each phone group
+    let dialCount = phoneEntries.length;
 
-    // Create rows for each entry in the sorted PID group
-    pidEntries.forEach((entry, index) => {
+    // Create rows for each entry in the sorted phone group
+    phoneEntries.forEach((entry, index) => {
       const row = pidTypeCountsTableBody.insertRow();
 
       // Caller cell
@@ -537,7 +566,30 @@ function showPidTypeCounts(caller, entries) {
 
       // Phone cell
       const phoneCell = row.insertCell(1);
-      phoneCell.textContent = entry.phone || '--'; // Show phone field if available
+      phoneCell.className = 'phone-cell';
+      phoneCell.textContent = phone || '--'; // Use normalized phone field if available
+
+      // Add the appropriate icon
+      const iconElement = document.createElement('i');
+      
+      if (!entry.pid) {
+        iconElement.className = 'fi fi-ss-address-book';
+        iconElement.style.color = 'white';
+        iconElement.style.backgroundColor = 'rgb(25, 255, 25)';
+        iconElement.style.display = 'flex';
+        iconElement.style.padding = '6px';
+        iconElement.style.marginLeft = '5px';
+        iconElement.style.borderRadius = '50%';
+      } else {
+        iconElement.className = 'fi fi-ss-customer-service';
+        iconElement.style.color = 'white';
+        iconElement.style.backgroundColor = 'rgb(255, 25, 25)';
+        iconElement.style.marginLeft = '5px';
+        iconElement.style.display = 'flex';
+        iconElement.style.padding = '6px';
+        iconElement.style.borderRadius = '50%';
+      }
+      phoneCell.appendChild(iconElement);
 
       // Type cell
       const typeCell = row.insertCell(2);
@@ -553,22 +605,22 @@ function showPidTypeCounts(caller, entries) {
 
       // Call Status cell
       const callStatusCell = row.insertCell(5);
-      // If duration is 0, call status is 'Not Connected', otherwise 'Connected'
-      callStatusCell.textContent = entry.duration === 0 ? 'Not Connected' : 'Connected';
+      callStatusCell.textContent = entry.duration === 0 ? 'Not Connected' : 'Connected'; // Call status logic
 
       // Call Type cell (Redial or Unique Dial)
       const callTypeCell = row.insertCell(6);
       callTypeCell.textContent = index === 0 ? 'Unique Dial' : 'Redial'; // The first entry is "Unique Dial", others are "Redial"
 
-      // Dial Count cell (count redials)
+      // Dial Count cell
       const dialCountCell = row.insertCell(7);
-      dialCountCell.textContent = index === 0 ? pidEntries.length : '--'; // Only show dial count in the first entry for each PID group
+      dialCountCell.textContent = index === 0 ? dialCount : '--'; // Only show dial count for the first entry in the group
 
       // PID cell
       const pidCell = row.insertCell(8);
       pidCell.textContent = entry.pid || '--';
     });
   });
+
   hideSpinner();
 }
 
