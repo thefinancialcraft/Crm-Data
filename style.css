@@ -193,15 +193,12 @@ h2{
     display: none;
 }
 
-#callTable, #pidTypeCountsTable{
+#callTable, #pidTypeCountsTable, #scheduleTable, #followUpHistory{
     /* width: %; */
     padding: 10px;
     /* margin: 10px; */
 
     font-size: 14px;
-
-   
-
 
     .theadstyle{
 

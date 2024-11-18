@@ -20,6 +20,8 @@ function fetchMembersData() {
       
       // Now call segregateAndPopulateData with both memberdata and activityData from fetchCallDetails
       fetchCallDetails(memberdata);
+      sheduleCalls(memberdata);
+      
     })
     .catch(error => {
       console.error('Error:', error);  // Log any errors
@@ -248,6 +250,140 @@ function fetchCallDetails(memberdata) {
 }
 
 
+
+function sheduleCalls(memberdata) {
+  const memData = memberdata;
+  console.log('////',memData);
+  const url = 'https://web.betyphon.in/api/action/getPaginationData';
+  const data = {
+    root: "prospects",
+    querydata: {
+      $and: [{"IsActive": true}, {"open": true}],
+      callback: {"$ne": null},
+      admin: "smilingajai@gmail.com",
+      IsActive: true,
+    },
+    body: {
+      limit: 0,
+      skip: 0,
+      sort: { createdOn: -1 }
+    }
+  };
+
+  const headers = {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NzAzNSwiY2FsbGVyIjoic21pbGluZ2FqYWlAZ21haWwuY29tIiwiYWRtaW4iOiJzbWlsaW5nYWphaUBnbWFpbC5jb20iLCJpYXQiOjE3MzE4Njk5MzV9.ugwUQ-xCTZE91sX0zbUFmb_p3QZvWb3U8DGXzIfY0ZE',
+    'Content-Type': 'application/json;charset=utf-8',
+    'Accept': 'application/json, text/plain, */*'
+  };
+
+  fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(data)
+  })
+    .then(response => response.json())
+    .then(responseData => {
+      if (responseData.data && responseData.data.activityData) {
+        const sheduleData = responseData.data.activityData;
+        console.log('Schedule Data:', sheduleData);
+        calculateAndPopulateTable(sheduleData, memberdata); // New function for calculation and table population
+      } else {
+        console.log('No data found.');
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+}
+
+function calculateAndPopulateTable(data, memberdata) {
+  const tableBody = document.querySelector('#scheduleTable tbody');
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  // Validate memberdata before creating the map
+  if (!memberdata || !Array.isArray(memberdata)) {
+    console.error('Invalid or missing memberdata:', memberdata);
+    return;
+  }
+
+  const memberMap = new Map();
+  memberdata.forEach(member => {
+    memberMap.set(member.username, {
+      first_name: member.first_name,
+      last_activity: member.last_activity
+    });
+  });
+
+  const currentDate = new Date(); // Current date
+  const callerData = {};
+  let totalFollowUp = 0, totalOverdues = 0, totalUpcoming = 0;
+
+  // Process data for calculations
+  data.forEach(item => {
+    const assignTo = item.assignTo || 'Unknown';
+    const callbackTime = item.callback ? new Date(item.callback) : null;
+
+    // Initialize data for the caller if not already present
+    if (!callerData[assignTo]) {
+      callerData[assignTo] = { followUp: 0, overdues: 0, upcoming: 0 };
+    }
+
+    // Increment follow-up count
+    callerData[assignTo].followUp++;
+    totalFollowUp++;
+
+    // Check if the callback time is overdue or upcoming
+    if (callbackTime) {
+      if (callbackTime < currentDate) {
+        callerData[assignTo].overdues++;
+        totalOverdues++;
+      } else {
+        callerData[assignTo].upcoming++;
+        totalUpcoming++;
+      }
+    }
+  });
+
+  // Populate the table body with the calculated data
+  Object.entries(callerData).forEach(([caller, stats]) => {
+    const row = document.createElement('tr');
+
+    // Caller column
+    const callerCell = document.createElement('td');
+    callerCell.textContent = caller;
+    row.appendChild(callerCell);
+
+    // First Name column
+    const firstNameCell = document.createElement('td');
+    const memberInfo = memberMap.get(caller);
+    firstNameCell.textContent = memberInfo ? memberInfo.first_name : 'Unknown';
+    row.appendChild(firstNameCell);
+
+    // Follow-Up column
+    const followUpCell = document.createElement('td');
+    followUpCell.textContent = stats.followUp;
+    row.appendChild(followUpCell);
+
+    // Overdues column
+    const overduesCell = document.createElement('td');
+    overduesCell.textContent = stats.overdues;
+    row.appendChild(overduesCell);
+
+    // Upcoming column
+    const upcomingCell = document.createElement('td');
+    upcomingCell.textContent = stats.upcoming;
+    row.appendChild(upcomingCell);
+
+    tableBody.appendChild(row); // Append the row to the table body
+  });
+
+  // Update the headers with total counts
+  document.querySelector('#followUpHeader').textContent = `Follow-Up (${totalFollowUp})`;
+  document.querySelector('#overdueHeader').textContent = `Overdues (${totalOverdues})`;
+  document.querySelector('#upcomingHeader').textContent = `Upcoming (${totalUpcoming})`;
+}
+
+
 function formatTimeAgo(lastActivityTime) {
   const now = new Date();
   const lastActivity = new Date(lastActivityTime);
@@ -275,7 +411,7 @@ function segregateAndPopulateData(memberdata, activityData) {
   const callerPidsDetails = new Map();
 
   // List of usernames to exclude
-  const excludeUsernames = new Set(['smilingajai@gmail.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
+  const excludeUsernames = new Set(['smilingajai@gmail.com', 'Akash@tfc.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
 
   // Map member details by email (username) for quick lookup
   const memberMap = new Map();
@@ -327,16 +463,14 @@ function segregateAndPopulateData(memberdata, activityData) {
   tableBody.innerHTML = ''; // Clear the existing rows
 
   const tableHeaderRow = document.getElementById("callersTable").getElementsByTagName('thead')[0].rows[0];
-  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity (Formatted)</th>'; // Adjust header columns
+  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity</th>'; // Adjust header columns
 
-  uniqueTypes.forEach(type => {
-    const headerCell = document.createElement('th');
-    headerCell.textContent = type;
-    tableHeaderRow.appendChild(headerCell);
-  });
+  const summaryHeaderCell = document.createElement('th');
+  summaryHeaderCell.textContent = "Call Logs";
+  tableHeaderRow.appendChild(summaryHeaderCell);
 
   const durationHeader = document.createElement('th');
-  durationHeader.textContent = "Total Duration (hh:mm:ss)";
+  durationHeader.textContent = "Talk Time";
   tableHeaderRow.appendChild(durationHeader);
 
   const pidHeader = document.createElement('th');
@@ -344,12 +478,17 @@ function segregateAndPopulateData(memberdata, activityData) {
   tableHeaderRow.appendChild(pidHeader);
 
   const pidDurationHeader = document.createElement('th');
-  pidDurationHeader.textContent = "Business Duration (hh:mm:ss)";
+  pidDurationHeader.textContent = "Business Talktime";
   tableHeaderRow.appendChild(pidDurationHeader);
 
   const pidTypeCountsHeader = document.createElement('th');
-  pidTypeCountsHeader.textContent = "Business Type Counts";
+  pidTypeCountsHeader.textContent = "Business Call Logs";
   tableHeaderRow.appendChild(pidTypeCountsHeader);
+
+  // New header for the sum of OUTGOING and INCOMING
+  const pidSumHeader = document.createElement('th');
+  pidSumHeader.textContent = "No. of Dials";
+  tableHeaderRow.appendChild(pidSumHeader);
 
   let sno = 1;
 
@@ -377,9 +516,27 @@ function segregateAndPopulateData(memberdata, activityData) {
       lastActivityCell.textContent = '--';
     }
 
+    const summaryCell = row.insertCell();
+    const typeSummaries = [];
+
     uniqueTypes.forEach(type => {
-      const cell = row.insertCell();
-      cell.textContent = details.types[type] || '--';
+      if (details.types[type]) {
+        typeSummaries.push(`${type}: ${details.types[type]}`);
+      }
+    });
+
+    // Join summaries with line breaks for better readability
+    summaryCell.textContent = typeSummaries.length ? typeSummaries.join('\n') : '--';
+    summaryCell.style.whiteSpace = 'pre-line'; // Ensure line breaks are displayed
+
+    // Add click event listener
+    summaryCell.style.cursor = 'pointer'; // Make cell look clickable
+    summaryCell.addEventListener('click', function () {
+      // Call the showPidTypeCounts function with the caller and associated entries
+      showPidTypeCounts(caller, details.entries);
+      document.getElementById("callhistorytabel").style.display = "flex";
+      document.getElementById("backtohome").style.display = "flex";
+      document.getElementById("callersTable").style.display = "none";
     });
 
     const durationCell = row.insertCell();
@@ -396,9 +553,11 @@ function segregateAndPopulateData(memberdata, activityData) {
     const pidTypeCounts = [];
     const pidTypesMap = pidData ? pidData.pidTypes : new Map();
 
+    // Safely initialize summedTypes
+    let summedTypes = {};
+
     // Only include business type counts if pid is available
     if (pidTypesMap.size > 0) {
-      const summedTypes = {};
       pidTypesMap.forEach((pidTypeData) => {
         uniqueTypes.forEach(type => {
           summedTypes[type] = (summedTypes[type] || 0) + (pidTypeData.types.get(type) || 0);
@@ -414,10 +573,18 @@ function segregateAndPopulateData(memberdata, activityData) {
 
     // Add click event to show details in pidTypeCountsTable
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
+    pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join('\n') : '--';
+    pidTypeCountsCell.style.whiteSpace = 'pre-line';
     pidTypeCountsCell.style.cursor = 'pointer';
     pidTypeCountsCell.addEventListener('click', function() {
       showPidTypeCounts(caller, pidData ? pidData.entriesWithPid : []);
     });
+
+    // **New column for the sum of OUTGOING + INCOMING**
+    const pidSumCell = row.insertCell();
+    const outgoingCount = summedTypes['OUTGOING'] || 0;
+    const incomingCount = summedTypes['INCOMING'] || 0;
+    pidSumCell.textContent = outgoingCount + incomingCount;
   });
 
   // Add rows for unmatched usernames
@@ -447,7 +614,35 @@ function segregateAndPopulateData(memberdata, activityData) {
       }
     }
   });
+
+  // Add CSS for sticky columns
+  const stickyColumnsStyle = `
+    th:nth-child(1), td:nth-child(1),
+    th:nth-child(2), td:nth-child(2) {
+      position: sticky;
+      left: 0;
+      background-color: rgb(248, 248, 248);   
+      z-index: 1;
+    }
+  `;
+  
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = stickyColumnsStyle;
+  document.head.appendChild(styleElement);
 }
+
+// Format duration in hh:mm:ss
+function formatDuration(duration) {
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = duration % 60;
+  return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+
+function padZero(num) {
+  return num < 10 ? '0' + num : num;
+}
+
 
 
 function backtohome(){
@@ -470,17 +665,15 @@ Array.from(dateInputs).forEach((dateInput) => {
 
 // Function to show detailed entries in the pidTypeCountsTable
 function showPidTypeCounts(caller, entries) {
-
   showSpinner();
 
-  document.getElementById("callhistorytabel").style.display = "flex"
-  document.getElementById("backtohome").style.display = "flex"
-  document.getElementById("callersTable").style.display = "none"
-  
+  document.getElementById("callhistorytabel").style.display = "flex";
+  document.getElementById("backtohome").style.display = "flex";
+  document.getElementById("callersTable").style.display = "none";
 
   const pidTypeCountsTableBody = document.getElementById("pidTypeCountsTable").getElementsByTagName('tbody')[0];
   const pidTypeCountsTableHeader = document.getElementById("pidTypeCountsTable").getElementsByTagName('thead')[0].rows[0];
-  
+
   pidTypeCountsTableBody.innerHTML = ''; // Clear the existing rows
 
   // Update table header with the new order of columns
@@ -490,31 +683,40 @@ function showPidTypeCounts(caller, entries) {
     <th>Type</th>
     <th>Start Date</th>
     <th>Duration</th>
-    <th>Call Status</th> <!-- New column for Call Status -->
-    <th>Call Type</th> <!-- New column for Call Type -->
-    <th>Dial Count</th> <!-- New column for Dial Count -->
-    <th>PID</th> <!-- New column for PID -->
+    <th>Call Status</th>
+    <th>Call Type</th>
+    <th>Dial Count</th>
+    <th>PID</th>
   `;
 
-  // Group entries by PID and sort them by start date
-  const pidMap = new Map();
+  // Helper function to normalize phone numbers to the last 10 digits
+  const normalizePhone = (phone) => {
+    if (!phone) return null;
+    const cleanedPhone = phone.replace(/\D/g, ''); // Remove non-digit characters
+    return cleanedPhone.length > 10 ? cleanedPhone.slice(-10) : cleanedPhone; // Keep only the last 10 digits
+  };
+
+  // Group entries by normalized phone number
+  const phoneMap = new Map();
   entries.forEach(entry => {
-    if (!pidMap.has(entry.pid)) {
-      pidMap.set(entry.pid, []);
+    const normalizedPhone = normalizePhone(entry.phone);
+    if (!normalizedPhone) return; // Skip if phone is null or invalid
+    if (!phoneMap.has(normalizedPhone)) {
+      phoneMap.set(normalizedPhone, []);
     }
-    pidMap.get(entry.pid).push(entry);
+    phoneMap.get(normalizedPhone).push(entry);
   });
 
-  // Loop through each PID group and sort by start date
-  pidMap.forEach((pidEntries, pid) => {
+  // Loop through each phone group and sort by start date
+  phoneMap.forEach((phoneEntries, phone) => {
     // Sort entries by start date (ascending)
-    pidEntries.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    phoneEntries.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-    // Track the redial count for each PID based on the earliest start date
-    let dialCount = 0;
+    // Track the redial count for each phone group
+    let dialCount = phoneEntries.length;
 
-    // Create rows for each entry in the sorted PID group
-    pidEntries.forEach((entry, index) => {
+    // Create rows for each entry in the sorted phone group
+    phoneEntries.forEach((entry, index) => {
       const row = pidTypeCountsTableBody.insertRow();
 
       // Caller cell
@@ -523,7 +725,30 @@ function showPidTypeCounts(caller, entries) {
 
       // Phone cell
       const phoneCell = row.insertCell(1);
-      phoneCell.textContent = entry.phone || '--'; // Show phone field if available
+      phoneCell.className = 'phone-cell';
+      phoneCell.textContent = phone || '--'; // Use normalized phone field if available
+
+      // Add the appropriate icon
+      const iconElement = document.createElement('i');
+      
+      if (!entry.pid) {
+        iconElement.className = 'fi fi-ss-address-book';
+        iconElement.style.color = 'white';
+        iconElement.style.backgroundColor = 'rgb(25, 255, 25)';
+        iconElement.style.display = 'flex';
+        iconElement.style.padding = '6px';
+        iconElement.style.marginLeft = '5px';
+        iconElement.style.borderRadius = '50%';
+      } else {
+        iconElement.className = 'fi fi-ss-customer-service';
+        iconElement.style.color = 'white';
+        iconElement.style.backgroundColor = 'rgb(255, 25, 25)';
+        iconElement.style.marginLeft = '5px';
+        iconElement.style.display = 'flex';
+        iconElement.style.padding = '6px';
+        iconElement.style.borderRadius = '50%';
+      }
+      phoneCell.appendChild(iconElement);
 
       // Type cell
       const typeCell = row.insertCell(2);
@@ -539,22 +764,22 @@ function showPidTypeCounts(caller, entries) {
 
       // Call Status cell
       const callStatusCell = row.insertCell(5);
-      // If duration is 0, call status is 'Not Connected', otherwise 'Connected'
-      callStatusCell.textContent = entry.duration === 0 ? 'Not Connected' : 'Connected';
+      callStatusCell.textContent = entry.duration === 0 ? 'Not Connected' : 'Connected'; // Call status logic
 
       // Call Type cell (Redial or Unique Dial)
       const callTypeCell = row.insertCell(6);
       callTypeCell.textContent = index === 0 ? 'Unique Dial' : 'Redial'; // The first entry is "Unique Dial", others are "Redial"
 
-      // Dial Count cell (count redials)
+      // Dial Count cell
       const dialCountCell = row.insertCell(7);
-      dialCountCell.textContent = index === 0 ? pidEntries.length : '--'; // Only show dial count in the first entry for each PID group
+      dialCountCell.textContent = index === 0 ? dialCount : '--'; // Only show dial count for the first entry in the group
 
       // PID cell
       const pidCell = row.insertCell(8);
       pidCell.textContent = entry.pid || '--';
     });
   });
+
   hideSpinner();
 }
 
@@ -651,3 +876,27 @@ function formatTimeAgo(timestamp) {
   document.body.classList.remove('overlay-hidden');
 
  }
+
+
+
+
+ const scrollTopBtn = document.getElementById('backtotop');
+
+ // Show button when user scrolls down
+ window.addEventListener('scroll', () => {
+   if (window.scrollY > 200) {
+     scrollTopBtn.style.display = 'block';
+   } else {
+     scrollTopBtn.style.display = 'none';
+   }
+ });
+
+ // Scroll to top when button is clicked
+ scrollTopBtn.addEventListener('click', () => {
+   window.scrollTo({
+     top: 0,
+     behavior: 'smooth'
+   });
+ });
+
+

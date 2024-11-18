@@ -34,6 +34,7 @@
     <input type="date" class="dateInput" id="endDate" required>
     <button onclick="reload()">Apply</button>
     <button style="background-color: coral;" onclick="convertToImage(this)">Print</button>
+    <button style="background-color: rgb(255, 80, 255);" onclick="sheduleCalls()">Follow Up</button>
 </div>
     </div>
 
@@ -55,8 +56,9 @@
     </tbody>
   </table>
 
-</div>
+    </div>
 
+    
 
 </div>
 
@@ -77,6 +79,56 @@
   </table>
   
   </div>
+
+
+  <div id="followTabel" class="calltabel callhistorytabel">
+
+
+
+    <h4>Follow Up Details</h4>
+    <span></span>
+    <table id="scheduleTable">
+      <thead>
+        <tr>
+          <th id="callerHeader">Caller</th>
+          <th>Caller Name</th>
+          <th id="followUpHeader">Follow-Up</th>
+          <th id="overdueHeader">Overdues</th>
+          <th id="upcomingHeader">Upcoming</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be populated here -->
+      </tbody>
+    </table>
+    
+  
+  </div>
+
+
+  <div id="followHistoryTabel" class="calltabel callhistorytabel">
+
+    <h4>Follow-Up History</h4>
+  <table id="followUpHistory">
+    <thead>
+      <tr>
+        <th>Caller Name</th>
+        <th>Customer Name</th>
+        <th>Phone</th>
+        <th>Dialed Status</th>
+        <th>Scheduled Time</th>
+        <th>Last Activity</th>
+        <th>No. of Dials</th>
+        <th>Last Caller</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- History details will be dynamically populated based on the clicked cell -->
+    </tbody>
+  </table>
+
+</div>
+
   
  
   <script src="script.js"></script>

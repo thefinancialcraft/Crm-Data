@@ -1,0 +1,11 @@
+now make sum modification jav bhi me kissi bhi cell pr click kru to ush cell ki entries show kre new tabel me folloup history 
+first collou caller name me memberdata.username se 
+second coloum me Customer Name entry.type.firstName se 
+third coloum me phone no. entry.type.phone se 
+fouth coloum me isdialled  agr entry.type me CallStatus filed avilable ho or "Contacted" ho to display kre Yes agr CallStatus filed avilable na ho ya hone pr "Not Contacted" to fake display kre 
+fith coloum me Shedule time entry.type.callback se
+sixth coloum me last Activity entry.type.LastCalled se 
+seventh coloum me no. of dials entry.type.TotalCalls se 
+eight coloum me last caller  entry.type.LastCaller se 
+
+time ko DD/MM/YY /n HH:MM:SS me display kre indian time ke acording and koi bhi value na milne pr "--" display kre

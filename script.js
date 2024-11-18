@@ -20,6 +20,8 @@ function fetchMembersData() {
       
       // Now call segregateAndPopulateData with both memberdata and activityData from fetchCallDetails
       fetchCallDetails(memberdata);
+      sheduleCalls(memberdata);
+      
     })
     .catch(error => {
       console.error('Error:', error);  // Log any errors
@@ -246,6 +248,252 @@ function fetchCallDetails(memberdata) {
     hideSpinner();  
   });
 }
+
+
+
+function sheduleCalls(memberdata) {
+  const memData = memberdata;
+  console.log('////',memData);
+  const url = 'https://web.betyphon.in/api/action/getPaginationData';
+  const data = {
+    root: "prospects",
+    querydata: {
+      $and: [{"IsActive": true}, {"open": true}],
+      callback: {"$ne": null},
+      admin: "smilingajai@gmail.com",
+      IsActive: true,
+    },
+    body: {
+      limit: 0,
+      skip: 0,
+      sort: { createdOn: -1 }
+    }
+  };
+
+  const headers = {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NzAzNSwiY2FsbGVyIjoic21pbGluZ2FqYWlAZ21haWwuY29tIiwiYWRtaW4iOiJzbWlsaW5nYWphaUBnbWFpbC5jb20iLCJpYXQiOjE3MzE4Njk5MzV9.ugwUQ-xCTZE91sX0zbUFmb_p3QZvWb3U8DGXzIfY0ZE',
+    'Content-Type': 'application/json;charset=utf-8',
+    'Accept': 'application/json, text/plain, */*'
+  };
+
+  fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(data)
+  })
+    .then(response => response.json())
+    .then(responseData => {
+      if (responseData.data && responseData.data.activityData) {
+        const sheduleData = responseData.data.activityData;
+        console.log('Schedule Data:', sheduleData);
+        calculateAndPopulateTable(sheduleData, memberdata); // New function for calculation and table population
+      } else {
+        console.log('No data found.');
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+}
+
+function calculateAndPopulateTable(data, memberdata) {
+  const tableBody = document.querySelector('#scheduleTable tbody');
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  // Validate memberdata before creating the map
+  if (!memberdata || !Array.isArray(memberdata)) {
+    console.error('Invalid or missing memberdata:', memberdata);
+    return;
+  }
+
+  const memberMap = new Map();
+  memberdata.forEach(member => {
+    memberMap.set(member.username, {
+      first_name: member.first_name,
+      last_activity: member.last_activity
+    });
+  });
+
+  const currentDate = new Date(); // Current date
+  const callerData = {};
+  let totalFollowUp = 0, totalOverdues = 0, totalUpcoming = 0;
+
+  // Process data for calculations
+  data.forEach(item => {
+    const assignTo = item.assignTo || 'Unknown';
+    const callbackTime = item.callback ? new Date(item.callback) : null;
+
+    // Initialize data for the caller if not already present
+    if (!callerData[assignTo]) {
+      callerData[assignTo] = { followUp: 0, overdues: 0, upcoming: 0, followUpEntries: [], overdueEntries: [], upcomingEntries: [] };
+    }
+
+    // Increment follow-up count and store entries
+    callerData[assignTo].followUp++;
+    callerData[assignTo].followUpEntries.push(item);
+    totalFollowUp++;
+
+    // Check if the callback time is overdue or upcoming
+    if (callbackTime) {
+      if (callbackTime < currentDate) {
+        callerData[assignTo].overdues++;
+        callerData[assignTo].overdueEntries.push(item);
+        totalOverdues++;
+      } else {
+        callerData[assignTo].upcoming++;
+        callerData[assignTo].upcomingEntries.push(item);
+        totalUpcoming++;
+      }
+    }
+  });
+
+  // Populate the table body with the calculated data
+  Object.entries(callerData).forEach(([caller, stats]) => {
+    const row = document.createElement('tr');
+
+    // Caller column
+    const callerCell = document.createElement('td');
+    callerCell.textContent = caller;
+    row.appendChild(callerCell);
+
+    // First Name column
+    const firstNameCell = document.createElement('td');
+    const memberInfo = memberMap.get(caller);
+    firstNameCell.textContent = memberInfo ? memberInfo.first_name : 'Unknown';
+    row.appendChild(firstNameCell);
+
+    // Follow-Up column
+    const followUpCell = document.createElement('td');
+    followUpCell.textContent = stats.followUp;
+    followUpCell.classList.add('clickable'); // Add a class to identify clickable cells
+    followUpCell.dataset.type = 'followUp'; // Add data-type to identify column type
+    row.appendChild(followUpCell);
+
+    // Overdues column
+    const overduesCell = document.createElement('td');
+    overduesCell.textContent = stats.overdues;
+    overduesCell.classList.add('clickable'); // Add a class to identify clickable cells
+    overduesCell.dataset.type = 'overdues'; // Add data-type to identify column type
+    row.appendChild(overduesCell);
+
+    // Upcoming column
+    const upcomingCell = document.createElement('td');
+    upcomingCell.textContent = stats.upcoming;
+    upcomingCell.classList.add('clickable'); // Add a class to identify clickable cells
+    upcomingCell.dataset.type = 'upcoming'; // Add data-type to identify column type
+    row.appendChild(upcomingCell);
+
+    tableBody.appendChild(row); // Append the row to the table body
+  });
+
+  // Update the headers with total counts
+  document.querySelector('#followUpHeader').textContent = `Follow-Up (${totalFollowUp})`;
+  document.querySelector('#overdueHeader').textContent = `Overdues (${totalOverdues})`;
+  document.querySelector('#upcomingHeader').textContent = `Upcoming (${totalUpcoming})`;
+
+  // Add click event listeners for the clickable cells
+  const clickableCells = document.querySelectorAll('.clickable');
+  clickableCells.forEach(cell => {
+    cell.addEventListener('click', function() {
+      const row = this.closest('tr'); // Find the closest row to the clicked cell
+      const caller = row.querySelector('td:first-child').textContent; // Get the caller name
+      const entry = callerData[caller]; // Get the corresponding entry from callerData
+      const entryType = this.dataset.type; // Get the type of entry (followUp, overdues, upcoming)
+
+      // Filter entries based on the type of the clicked column
+      let filteredEntries = [];
+      if (entryType === 'followUp') {
+        filteredEntries = entry.followUpEntries;
+      } else if (entryType === 'overdues') {
+        filteredEntries = entry.overdueEntries;
+      } else if (entryType === 'upcoming') {
+        filteredEntries = entry.upcomingEntries;
+      }
+
+      // Populate the new table with the filtered entries
+      const historyTableBody = document.querySelector('#followUpHistory tbody');
+      historyTableBody.innerHTML = ''; // Clear existing rows
+
+      filteredEntries.forEach(entry => {
+        const newRow = document.createElement('tr');
+
+        // Caller Name column
+        const callerNameCell = document.createElement('td');
+
+// Check if the assignTo value matches a username in the memberMap
+const memberInfo = memberMap.get(entry.assignTo);
+if (memberInfo) {
+  // If found, use the first_name from the member data
+  callerNameCell.textContent = memberInfo.first_name;
+} else {
+  // If no match, display '--'
+  callerNameCell.textContent = '--';
+}
+
+newRow.appendChild(callerNameCell);
+
+        // Customer Name column
+        const customerNameCell = document.createElement('td');
+        customerNameCell.textContent = entry.firstName || '--';
+        newRow.appendChild(customerNameCell);
+
+        // Phone column
+        const phoneCell = document.createElement('td');
+        phoneCell.textContent = entry.phone || '--';
+        newRow.appendChild(phoneCell);
+
+        // Dialed Status column
+        const dialedStatusCell = document.createElement('td');
+        const callStatus = entry.CallStatus || '';
+        dialedStatusCell.textContent = (callStatus === 'Contacted') ? 'Yes' : 'Not Contacted';
+        newRow.appendChild(dialedStatusCell);
+
+        // Scheduled Time column
+        const scheduledTimeCell = document.createElement('td');
+        const callbackTime = entry.callback ? new Date(entry.callback) : null;
+        scheduledTimeCell.textContent = callbackTime ? formatDate(callbackTime) : '--';
+        newRow.appendChild(scheduledTimeCell);
+
+        // Last Activity column
+        const lastActivityCell = document.createElement('td');
+        const lastCalled = entry.LastCalled ? new Date(entry.LastCalled) : null;
+        lastActivityCell.textContent = lastCalled ? formatDate(lastCalled) : '--';
+        newRow.appendChild(lastActivityCell);
+
+        // No. of Dials column
+        const noOfDialsCell = document.createElement('td');
+        noOfDialsCell.textContent = entry.TotalCalls || '--';
+        newRow.appendChild(noOfDialsCell);
+
+        // Last Caller column
+        const lastCallerCell = document.createElement('td');
+        lastCallerCell.textContent = entry.LastCaller || '--';
+        newRow.appendChild(lastCallerCell);
+
+        // Append new row to the history table
+        historyTableBody.appendChild(newRow);
+      });
+    });
+  });
+}
+
+// Helper function to format date in DD/MM/YY HH:MM:SS format
+function formatDate(date) {
+  const options = { timeZone: 'Asia/Kolkata', hour12: false };
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    // second: '2-digit',
+    ...options
+  }).format(date);
+  return formattedDate.replace(',', '').replace(' ', '  ');
+}
+
+
+
 
 
 function formatTimeAgo(lastActivityTime) {
@@ -762,3 +1010,5 @@ function formatTimeAgo(timestamp) {
      behavior: 'smooth'
    });
  });
+
+
