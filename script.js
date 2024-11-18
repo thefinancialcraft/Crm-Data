@@ -351,7 +351,7 @@ function segregateAndPopulateData(memberdata, activityData) {
 
   // New header for the sum of OUTGOING and INCOMING
   const pidSumHeader = document.createElement('th');
-  pidSumHeader.textContent = "Dials";
+  pidSumHeader.textContent = "No. of Dials";
   tableHeaderRow.appendChild(pidSumHeader);
 
   let sno = 1;
@@ -485,7 +485,7 @@ function segregateAndPopulateData(memberdata, activityData) {
     th:nth-child(2), td:nth-child(2) {
       position: sticky;
       left: 0;
-      background-color:  rgb(245, 245, 245);   
+      background-color: rgb(248, 248, 248);   
       z-index: 1;
     }
   `;

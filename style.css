@@ -120,7 +120,7 @@ body::-webkit-scrollbar{
     flex-direction: row;
     padding-left: 10px;
     margin-bottom: 5px;
-    margin-top: 20px;
+    margin-top: 10px;
 
     h2{
         font-size: 18px;
@@ -178,13 +178,13 @@ h2{
     flex-direction: column;
     /* justify-content: center; */
     /* align-items: center; */
-    margin-bottom: 10px;
-    background-color: rgb(245, 245, 245);   
+    /* margin-bottom: 10px; */
+    background-color: rgb(248, 248, 248);   
     box-shadow: 1px 4px 20px rgba(49, 49, 49, 0.169);
     border-radius: 20px;
     padding-bottom: 20px;
     /* margin-top: 20px; */
-    border: 2px solid white;
+    border: 1px solid white;
     overflow-y: hidden;
     overflow-x: scroll;
 }
@@ -196,7 +196,7 @@ h2{
 #callTable, #pidTypeCountsTable{
     /* width: %; */
     padding: 10px;
-    margin: 10px;
+    /* margin: 10px; */
 
     font-size: 14px;
 
@@ -230,8 +230,10 @@ h2{
         padding: 20px;
         /* padding-left: 20px; */
         max-width: 240px;
-        min-width: 20px;
+        min-width: 60px;
         cursor: pointer;
+
+        
    
     }
 }
@@ -291,3 +293,13 @@ h2{
   .overlay-hidden{
     overflow: hidden;
   }
+
+
+  @media (max-width: 510px) {
+    .calltabel{
+        width: 100%;
+        bottom: 0;
+        
+    }
+  }
+  
