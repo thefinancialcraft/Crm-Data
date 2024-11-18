@@ -327,14 +327,14 @@ function segregateAndPopulateData(memberdata, activityData) {
   tableBody.innerHTML = ''; // Clear the existing rows
 
   const tableHeaderRow = document.getElementById("callersTable").getElementsByTagName('thead')[0].rows[0];
-  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity (Formatted)</th>'; // Adjust header columns
+  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity</th>'; // Adjust header columns
 
   const summaryHeaderCell = document.createElement('th');
-  summaryHeaderCell.textContent = "Call Types";
+  summaryHeaderCell.textContent = "Call Logs";
   tableHeaderRow.appendChild(summaryHeaderCell);
 
   const durationHeader = document.createElement('th');
-  durationHeader.textContent = "Total Duration (hh:mm:ss)";
+  durationHeader.textContent = "Talk Time";
   tableHeaderRow.appendChild(durationHeader);
 
   const pidHeader = document.createElement('th');
@@ -342,16 +342,16 @@ function segregateAndPopulateData(memberdata, activityData) {
   tableHeaderRow.appendChild(pidHeader);
 
   const pidDurationHeader = document.createElement('th');
-  pidDurationHeader.textContent = "Business Duration (hh:mm:ss)";
+  pidDurationHeader.textContent = "Business Talktime";
   tableHeaderRow.appendChild(pidDurationHeader);
 
   const pidTypeCountsHeader = document.createElement('th');
-  pidTypeCountsHeader.textContent = "Business Type Counts";
+  pidTypeCountsHeader.textContent = "Business Call Logs";
   tableHeaderRow.appendChild(pidTypeCountsHeader);
 
   // New header for the sum of OUTGOING and INCOMING
   const pidSumHeader = document.createElement('th');
-  pidSumHeader.textContent = "Out & Inc.";
+  pidSumHeader.textContent = "Dials";
   tableHeaderRow.appendChild(pidSumHeader);
 
   let sno = 1;
@@ -437,6 +437,7 @@ function segregateAndPopulateData(memberdata, activityData) {
 
     // Add click event to show details in pidTypeCountsTable
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
+    pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join('\n') : '--';
     pidTypeCountsCell.style.whiteSpace = 'pre-line';
     pidTypeCountsCell.style.cursor = 'pointer';
     pidTypeCountsCell.addEventListener('click', function() {
