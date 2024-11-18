@@ -137,7 +137,7 @@ body::-webkit-scrollbar{
         border: 1px solid rgb(255, 255, 255);
         /* padding-left: 10px; */
          width: 15vw;
-        /* min-width: 70px; */
+        min-width: 80px;
         text-align: center;
         margin-left: 10px;
         font-family: 'roboto', sans-serif;
@@ -147,13 +147,6 @@ body::-webkit-scrollbar{
     input[type="date"]::-webkit-calendar-picker-indicator {
         display: none;
       }
-
-      input[type="date"]::-webkit- {
-        display: none;
-      }
-
-      
-
 
 
     button{
@@ -179,7 +172,7 @@ h2{
 
 
 .calltabel{
-    width: 96%;
+    width: 98%;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -271,6 +264,7 @@ h2{
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999;
 }
 
 
