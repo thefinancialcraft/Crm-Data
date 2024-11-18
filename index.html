@@ -34,11 +34,14 @@
     <input type="date" class="dateInput" id="endDate" required>
     <button onclick="reload()">Apply</button>
     <button style="background-color: coral;" onclick="convertToImage(this)">Print</button>
-    <button style="background-color: rgb(255, 80, 255);" onclick="sheduleCalls()">Follow Up</button>
+    <button style="background-color: rgb(255, 80, 255);" onclick="followUpshow()">Follow Up</button>
 </div>
     </div>
 
-    <div id="callersTable" class="calltabel">
+    <div id="callersTable" class="calltabel callhistorytabel">
+      
+    <h4>Dials Summary Details</h4>
+    <span></span>
 
   <table   id="callTable">
    
@@ -60,7 +63,7 @@
 
     
 
-</div>
+
 
   <div style="display: none;" id="callhistorytabel" class="calltabel callhistorytabel">
 
@@ -81,7 +84,7 @@
   </div>
 
 
-  <div id="followTabel" class="calltabel callhistorytabel">
+  <div style="display: none;" id="followTabel" class="calltabel callhistorytabel">
 
 
 
@@ -106,7 +109,7 @@
   </div>
 
 
-  <div id="followHistoryTabel" class="calltabel callhistorytabel">
+  <div style="display: none;" id="followHistoryTabel" class="calltabel callhistorytabel">
 
     <h4>Follow-Up History</h4>
   <table id="followUpHistory">
@@ -129,6 +132,7 @@
 
 </div>
 
+</div>
   
  
   <script src="script.js"></script>

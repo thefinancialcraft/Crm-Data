@@ -170,10 +170,18 @@ h2{
     text-align: center;
 }
 
+#callTable thead, #pidTypeCountsTable thead, #scheduleTable thead, #followUpHistory thead {
+    position: sticky;
+    top: 0;
+    height: 70px;
+    background-color:  rgb(248, 248, 248);    /* Add a background color to avoid transparency */
+    z-index: 888; /* Ensure the header stays above the content */
+  }
+  
 
 .calltabel{
     width: 98%;
-    height: 100%;
+    height: calc(100vh - 110px);
     display: flex;
     flex-direction: column;
     /* justify-content: center; */
@@ -185,7 +193,7 @@ h2{
     padding-bottom: 20px;
     /* margin-top: 20px; */
     border: 1px solid white;
-    overflow-y: hidden;
+    overflow-y: scroll;
     overflow-x: scroll;
 }
 
@@ -197,7 +205,6 @@ h2{
     /* width: %; */
     padding: 10px;
     /* margin: 10px; */
-
     font-size: 14px;
 
     .theadstyle{

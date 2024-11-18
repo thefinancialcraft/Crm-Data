@@ -473,6 +473,8 @@ newRow.appendChild(callerNameCell);
         // Append new row to the history table
         historyTableBody.appendChild(newRow);
       });
+       document.getElementById("followTabel").style.display = "none"
+       document.getElementById("followHistoryTabel").style.display = "flex"
     });
   });
 }
@@ -762,8 +764,17 @@ function backtohome(){
   document.getElementById("callhistorytabel").style.display = "none"
   document.getElementById("backtohome").style.display = "none"
   document.getElementById("callersTable").style.display = "flex"
+      document.getElementById("followTabel").style.display = "none"
+       document.getElementById("followHistoryTabel").style.display = "none"
   hideSpinner();
 }
+
+function followUpshow(){
+  document.getElementById("callersTable").style.display = "none"
+    document.getElementById("backtohome").style.display = "flex"
+    document.getElementById("followTabel").style.display = "flex"
+}
+
 
 const dateInputs = document.getElementsByClassName("dateInput");
 Array.from(dateInputs).forEach((dateInput) => {
@@ -952,6 +963,13 @@ function formatTimeAgo(timestamp) {
     function convertToImage(buttonElement) {
       // Get the parent element of the clicked button
       const content = buttonElement.closest(".content");
+      const calltabel = document.querySelectorAll(".calltabel");
+
+      calltabel.forEach(element => {
+          element.style.height = "100%";
+      });
+      
+
     
       // Use html2canvas to capture the content
       html2canvas(content).then(canvas => {
@@ -965,6 +983,9 @@ function formatTimeAgo(timestamp) {
     
         // Trigger the download
         link.click();
+        calltabel.forEach(element => {
+          element.style.height = "calc(100vh - 110px)";
+      });
       }).catch(error => {
         console.error("Error capturing the content as image:", error);
       });
