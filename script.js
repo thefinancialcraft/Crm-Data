@@ -524,10 +524,8 @@ function segregateAndPopulateData(memberdata, activityData) {
   const callerPids = new Map();
   const callerPidsDetails = new Map();
 
-  // List of usernames to exclude
   const excludeUsernames = new Set(['smilingajai@gmail.com', 'Akash@tfc.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
 
-  // Map member details by email (username) for quick lookup
   const memberMap = new Map();
   memberdata.forEach(member => {
     memberMap.set(member.username, {
@@ -536,13 +534,11 @@ function segregateAndPopulateData(memberdata, activityData) {
     });
   });
 
-  // Process the activityData
   activityData.forEach(item => {
-    if (excludeUsernames.has(item.caller)) return; // Skip excluded callers
+    if (excludeUsernames.has(item.caller)) return;
 
     uniqueTypes.add(item.type);
 
-    // Handle caller details with or without pid
     if (!callerDetails.has(item.caller)) {
       callerDetails.set(item.caller, { types: {}, totalDuration: 0, entries: [] });
       callerPids.set(item.caller, new Set());
@@ -574,10 +570,14 @@ function segregateAndPopulateData(memberdata, activityData) {
   });
 
   const tableBody = document.getElementById("callersTable").getElementsByTagName('tbody')[0];
-  tableBody.innerHTML = ''; // Clear the existing rows
+  tableBody.innerHTML = '';
 
   const tableHeaderRow = document.getElementById("callersTable").getElementsByTagName('thead')[0].rows[0];
-  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity</th>'; // Adjust header columns
+  tableHeaderRow.innerHTML = '<th>Caller</th><th>First Name</th><th>Last Activity</th>';
+
+  const utilizationHeader = document.createElement('th');
+  utilizationHeader.textContent = "Utilization (%)";
+  tableHeaderRow.appendChild(utilizationHeader);
 
   const summaryHeaderCell = document.createElement('th');
   summaryHeaderCell.textContent = "Call Logs";
@@ -599,27 +599,20 @@ function segregateAndPopulateData(memberdata, activityData) {
   pidTypeCountsHeader.textContent = "Business Call Logs";
   tableHeaderRow.appendChild(pidTypeCountsHeader);
 
-  // New header for the sum of OUTGOING and INCOMING
   const pidSumHeader = document.createElement('th');
   pidSumHeader.textContent = "No. of Dials";
   tableHeaderRow.appendChild(pidSumHeader);
 
-  let sno = 1;
-
-  // Loop through callerDetails to create rows for matching callers
   callerDetails.forEach((details, caller) => {
-    if (excludeUsernames.has(caller)) return; // Skip excluded callers
+    if (excludeUsernames.has(caller)) return;
 
     const row = tableBody.insertRow();
-    const snoCell = row.insertCell(0);
-    snoCell.textContent = sno++;
 
-    const cell1 = row.insertCell(1);
+    const cell1 = row.insertCell(0);
     cell1.textContent = caller;
 
-    // Add First Name and Last Activity columns
-    const firstNameCell = row.insertCell(2);
-    const lastActivityCell = row.insertCell(3);
+    const firstNameCell = row.insertCell(1);
+    const lastActivityCell = row.insertCell(2);
 
     const memberDetails = memberMap.get(caller);
     if (memberDetails) {
@@ -630,47 +623,37 @@ function segregateAndPopulateData(memberdata, activityData) {
       lastActivityCell.textContent = '--';
     }
 
-    const summaryCell = row.insertCell();
+    const utilizationCell = row.insertCell(3);
+    const pidData = callerPidsDetails.get(caller);
+    const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 60 : 0);
+    const outgoingCount = details.types['OUTGOING'] || 0;
+    const incomingCount = details.types['INCOMING'] || 0;
+    const noOfDials = outgoingCount + incomingCount;
+    const utilizationValue = ((businessTalktimeMinutes * 1.67 + noOfDials) / 200) * 100;
+    utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
+
+    const summaryCell = row.insertCell(4);
     const typeSummaries = [];
-
     uniqueTypes.forEach(type => {
-      if (details.types[type]) {
-        typeSummaries.push(`${type}: ${details.types[type]}`);
-      }
+      if (details.types[type]) typeSummaries.push(`${type}: ${details.types[type]}`);
     });
-
-    // Join summaries with line breaks for better readability
     summaryCell.textContent = typeSummaries.length ? typeSummaries.join('\n') : '--';
-    summaryCell.style.whiteSpace = 'pre-line'; // Ensure line breaks are displayed
+    summaryCell.style.whiteSpace = 'pre-line';
 
-    // Add click event listener
-    summaryCell.style.cursor = 'pointer'; // Make cell look clickable
-    summaryCell.addEventListener('click', function () {
-      // Call the showPidTypeCounts function with the caller and associated entries
-      showPidTypeCounts(caller, details.entries);
-      document.getElementById("callhistorytabel").style.display = "flex";
-      document.getElementById("backtohome").style.display = "flex";
-      document.getElementById("callersTable").style.display = "none";
-    });
-
-    const durationCell = row.insertCell();
+    const durationCell = row.insertCell(5);
     durationCell.textContent = details.totalDuration ? formatDuration(details.totalDuration) : '--';
 
-    const pidCell = row.insertCell();
+    const pidCell = row.insertCell(6);
     pidCell.textContent = callerPids.get(caller).size || '--';
 
-    const pidDurationCell = row.insertCell();
-    const pidData = callerPidsDetails.get(caller);
+    const pidDurationCell = row.insertCell(7);
     pidDurationCell.textContent = pidData && pidData.totalPidDuration ? formatDuration(pidData.totalPidDuration) : '--';
 
-    const pidTypeCountsCell = row.insertCell();
+    const pidTypeCountsCell = row.insertCell(8);
     const pidTypeCounts = [];
     const pidTypesMap = pidData ? pidData.pidTypes : new Map();
-
-    // Safely initialize summedTypes
     let summedTypes = {};
 
-    // Only include business type counts if pid is available
     if (pidTypesMap.size > 0) {
       pidTypesMap.forEach((pidTypeData) => {
         uniqueTypes.forEach(type => {
@@ -684,66 +667,14 @@ function segregateAndPopulateData(memberdata, activityData) {
         }
       }
     }
-
-    // Add click event to show details in pidTypeCountsTable
-    pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join('\n') : '--';
     pidTypeCountsCell.style.whiteSpace = 'pre-line';
-    pidTypeCountsCell.style.cursor = 'pointer';
-    pidTypeCountsCell.addEventListener('click', function() {
-      showPidTypeCounts(caller, pidData ? pidData.entriesWithPid : []);
-    });
 
-    // **New column for the sum of OUTGOING + INCOMING**
-    const pidSumCell = row.insertCell();
-    const outgoingCount = summedTypes['OUTGOING'] || 0;
-    const incomingCount = summedTypes['INCOMING'] || 0;
-    pidSumCell.textContent = outgoingCount + incomingCount;
+    const pidSumCell = row.insertCell(9);
+    pidSumCell.textContent = noOfDials || '--';
   });
-
-  // Add rows for unmatched usernames
-  memberMap.forEach((memberDetails, username) => {
-    if (!callerDetails.has(username) && !excludeUsernames.has(username)) {
-      const row = tableBody.insertRow();
-      const snoCell = row.insertCell(0);
-      snoCell.textContent = sno++;
-
-      const callerCell = row.insertCell(1);
-      callerCell.textContent = username;
-
-      const firstNameCell = row.insertCell(2);
-      firstNameCell.textContent = memberDetails.first_name || '--';
-
-      const lastActivityCell = row.insertCell(3);
-      lastActivityCell.textContent = memberDetails.last_activity ? formatTimeAgo(memberDetails.last_activity) : '--';
-
-      // Add empty cells for the remaining columns
-      for (let i = 4; i < tableHeaderRow.cells.length; i++) {
-        const emptyCell = row.insertCell();
-        if (i === tableHeaderRow.cells.length - 3 || i === tableHeaderRow.cells.length - 1) {
-          emptyCell.textContent = '--'; // Time-based cells
-        } else {
-          emptyCell.textContent = '--'; // Count-based cells
-        }
-      }
-    }
-  });
-
-  // Add CSS for sticky columns
-  const stickyColumnsStyle = `
-    th:nth-child(1), td:nth-child(1),
-    th:nth-child(2), td:nth-child(2) {
-      position: sticky;
-      left: 0;
-      background-color: rgb(248, 248, 248);   
-      z-index: 1;
-    }
-  `;
-  
-  const styleElement = document.createElement('style');
-  styleElement.innerHTML = stickyColumnsStyle;
-  document.head.appendChild(styleElement);
 }
+
 
 // Format duration in hh:mm:ss
 function formatDuration(duration) {
