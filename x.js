@@ -325,20 +325,23 @@ function calculateAndPopulateTable(data, memberdata) {
 
     // Initialize data for the caller if not already present
     if (!callerData[assignTo]) {
-      callerData[assignTo] = { followUp: 0, overdues: 0, upcoming: 0 };
+      callerData[assignTo] = { followUp: 0, overdues: 0, upcoming: 0, followUpEntries: [], overdueEntries: [], upcomingEntries: [] };
     }
 
-    // Increment follow-up count
+    // Increment follow-up count and store entries
     callerData[assignTo].followUp++;
+    callerData[assignTo].followUpEntries.push(item);
     totalFollowUp++;
 
     // Check if the callback time is overdue or upcoming
     if (callbackTime) {
       if (callbackTime < currentDate) {
         callerData[assignTo].overdues++;
+        callerData[assignTo].overdueEntries.push(item);
         totalOverdues++;
       } else {
         callerData[assignTo].upcoming++;
+        callerData[assignTo].upcomingEntries.push(item);
         totalUpcoming++;
       }
     }
@@ -362,16 +365,22 @@ function calculateAndPopulateTable(data, memberdata) {
     // Follow-Up column
     const followUpCell = document.createElement('td');
     followUpCell.textContent = stats.followUp;
+    followUpCell.classList.add('clickable'); // Add a class to identify clickable cells
+    followUpCell.dataset.type = 'followUp'; // Add data-type to identify column type
     row.appendChild(followUpCell);
 
     // Overdues column
     const overduesCell = document.createElement('td');
     overduesCell.textContent = stats.overdues;
+    overduesCell.classList.add('clickable'); // Add a class to identify clickable cells
+    overduesCell.dataset.type = 'overdues'; // Add data-type to identify column type
     row.appendChild(overduesCell);
 
     // Upcoming column
     const upcomingCell = document.createElement('td');
     upcomingCell.textContent = stats.upcoming;
+    upcomingCell.classList.add('clickable'); // Add a class to identify clickable cells
+    upcomingCell.dataset.type = 'upcoming'; // Add data-type to identify column type
     row.appendChild(upcomingCell);
 
     tableBody.appendChild(row); // Append the row to the table body
@@ -381,7 +390,112 @@ function calculateAndPopulateTable(data, memberdata) {
   document.querySelector('#followUpHeader').textContent = `Follow-Up (${totalFollowUp})`;
   document.querySelector('#overdueHeader').textContent = `Overdues (${totalOverdues})`;
   document.querySelector('#upcomingHeader').textContent = `Upcoming (${totalUpcoming})`;
+
+  // Add click event listeners for the clickable cells
+  const clickableCells = document.querySelectorAll('.clickable');
+  clickableCells.forEach(cell => {
+    cell.addEventListener('click', function() {
+      const row = this.closest('tr'); // Find the closest row to the clicked cell
+      const caller = row.querySelector('td:first-child').textContent; // Get the caller name
+      const entry = callerData[caller]; // Get the corresponding entry from callerData
+      const entryType = this.dataset.type; // Get the type of entry (followUp, overdues, upcoming)
+
+      // Filter entries based on the type of the clicked column
+      let filteredEntries = [];
+      if (entryType === 'followUp') {
+        filteredEntries = entry.followUpEntries;
+      } else if (entryType === 'overdues') {
+        filteredEntries = entry.overdueEntries;
+      } else if (entryType === 'upcoming') {
+        filteredEntries = entry.upcomingEntries;
+      }
+
+      // Populate the new table with the filtered entries
+      const historyTableBody = document.querySelector('#followUpHistory tbody');
+      historyTableBody.innerHTML = ''; // Clear existing rows
+
+      filteredEntries.forEach(entry => {
+        const newRow = document.createElement('tr');
+
+        // Caller Name column
+        const callerNameCell = document.createElement('td');
+
+// Check if the assignTo value matches a username in the memberMap
+const memberInfo = memberMap.get(entry.assignTo);
+if (memberInfo) {
+  // If found, use the first_name from the member data
+  callerNameCell.textContent = memberInfo.first_name;
+} else {
+  // If no match, display '--'
+  callerNameCell.textContent = '--';
 }
+
+newRow.appendChild(callerNameCell);
+
+        // Customer Name column
+        const customerNameCell = document.createElement('td');
+        customerNameCell.textContent = entry.firstName || '--';
+        newRow.appendChild(customerNameCell);
+
+        // Phone column
+        const phoneCell = document.createElement('td');
+        phoneCell.textContent = entry.phone || '--';
+        newRow.appendChild(phoneCell);
+
+        // Dialed Status column
+        const dialedStatusCell = document.createElement('td');
+        const callStatus = entry.CallStatus || '';
+        dialedStatusCell.textContent = (callStatus === 'Contacted') ? 'Yes' : 'Not Contacted';
+        newRow.appendChild(dialedStatusCell);
+
+        // Scheduled Time column
+        const scheduledTimeCell = document.createElement('td');
+        const callbackTime = entry.callback ? new Date(entry.callback) : null;
+        scheduledTimeCell.textContent = callbackTime ? formatDate(callbackTime) : '--';
+        newRow.appendChild(scheduledTimeCell);
+
+        // Last Activity column
+        const lastActivityCell = document.createElement('td');
+        const lastCalled = entry.LastCalled ? new Date(entry.LastCalled) : null;
+        lastActivityCell.textContent = lastCalled ? formatDate(lastCalled) : '--';
+        newRow.appendChild(lastActivityCell);
+
+        // No. of Dials column
+        const noOfDialsCell = document.createElement('td');
+        noOfDialsCell.textContent = entry.TotalCalls || '--';
+        newRow.appendChild(noOfDialsCell);
+
+        // Last Caller column
+        const lastCallerCell = document.createElement('td');
+        lastCallerCell.textContent = entry.LastCaller || '--';
+        newRow.appendChild(lastCallerCell);
+
+        // Append new row to the history table
+        historyTableBody.appendChild(newRow);
+      });
+       document.getElementById("followTabel").style.display = "none"
+       document.getElementById("followHistoryTabel").style.display = "flex"
+    });
+  });
+}
+
+// Helper function to format date in DD/MM/YY HH:MM:SS format
+function formatDate(date) {
+  const options = { timeZone: 'Asia/Kolkata', hour12: false };
+  const formattedDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    // second: '2-digit',
+    ...options
+  }).format(date);
+  return formattedDate.replace(',', '').replace(' ', '  ');
+}
+
+
+
 
 
 function formatTimeAgo(lastActivityTime) {
@@ -490,6 +604,12 @@ function segregateAndPopulateData(memberdata, activityData) {
   pidSumHeader.textContent = "No. of Dials";
   tableHeaderRow.appendChild(pidSumHeader);
 
+
+  const utilizationHeader = document.createElement('th');
+  utilizationHeader.textContent = "Utilization (%)";
+  tableHeaderRow.appendChild(utilizationHeader);
+
+
   let sno = 1;
 
   // Loop through callerDetails to create rows for matching callers
@@ -571,6 +691,8 @@ function segregateAndPopulateData(memberdata, activityData) {
       }
     }
 
+    
+
     // Add click event to show details in pidTypeCountsTable
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join('\n') : '--';
@@ -580,12 +702,25 @@ function segregateAndPopulateData(memberdata, activityData) {
       showPidTypeCounts(caller, pidData ? pidData.entriesWithPid : []);
     });
 
+    
+
     // **New column for the sum of OUTGOING + INCOMING**
     const pidSumCell = row.insertCell();
     const outgoingCount = summedTypes['OUTGOING'] || 0;
     const incomingCount = summedTypes['INCOMING'] || 0;
+    const noOfDials = outgoingCount + incomingCount;
     pidSumCell.textContent = outgoingCount + incomingCount;
+  
+
+
+  const utilizationCell = row.insertCell();
+    const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 60 : 0);
+    const utilizationValue = ((businessTalktimeMinutes * 1.67 + noOfDials) / 200) * 100;
+    utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
   });
+  
+
+
 
   // Add rows for unmatched usernames
   memberMap.forEach((memberDetails, username) => {
@@ -650,8 +785,17 @@ function backtohome(){
   document.getElementById("callhistorytabel").style.display = "none"
   document.getElementById("backtohome").style.display = "none"
   document.getElementById("callersTable").style.display = "flex"
+      document.getElementById("followTabel").style.display = "none"
+       document.getElementById("followHistoryTabel").style.display = "none"
   hideSpinner();
 }
+
+function followUpshow(){
+  document.getElementById("callersTable").style.display = "none"
+    document.getElementById("backtohome").style.display = "flex"
+    document.getElementById("followTabel").style.display = "flex"
+}
+
 
 const dateInputs = document.getElementsByClassName("dateInput");
 Array.from(dateInputs).forEach((dateInput) => {
@@ -840,6 +984,13 @@ function formatTimeAgo(timestamp) {
     function convertToImage(buttonElement) {
       // Get the parent element of the clicked button
       const content = buttonElement.closest(".content");
+      const calltabel = document.querySelectorAll(".calltabel");
+
+      calltabel.forEach(element => {
+          element.style.height = "100%";
+      });
+      
+
     
       // Use html2canvas to capture the content
       html2canvas(content).then(canvas => {
@@ -853,6 +1004,9 @@ function formatTimeAgo(timestamp) {
     
         // Trigger the download
         link.click();
+        calltabel.forEach(element => {
+          element.style.height = "calc(100vh - 110px)";
+      });
       }).catch(error => {
         console.error("Error capturing the content as image:", error);
       });
