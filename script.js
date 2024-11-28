@@ -577,7 +577,7 @@ function segregateAndPopulateData(memberdata, activityData) {
   tableBody.innerHTML = ''; // Clear the existing rows
 
   const tableHeaderRow = document.getElementById("callersTable").getElementsByTagName('thead')[0].rows[0];
-  tableHeaderRow.innerHTML = '<th>S.No</th><th>Caller</th><th>First Name</th><th>Last Activity</th>'; // Adjust header columns
+  tableHeaderRow.innerHTML = '<th>Caller</th><th>First Name</th><th>Last Activity</th>'; // Adjust header columns
 
   const summaryHeaderCell = document.createElement('th');
   summaryHeaderCell.textContent = "Call Logs";
@@ -604,32 +604,22 @@ function segregateAndPopulateData(memberdata, activityData) {
   pidSumHeader.textContent = "No. of Dials";
   tableHeaderRow.appendChild(pidSumHeader);
 
-
   const utilizationHeader = document.createElement('th');
   utilizationHeader.textContent = "Utilization (%)";
   tableHeaderRow.appendChild(utilizationHeader);
-
-
-  let sno = 1;
 
   // Loop through callerDetails to create rows for matching callers
   callerDetails.forEach((details, caller) => {
     if (excludeUsernames.has(caller)) return; // Skip excluded callers
 
     const row = tableBody.insertRow();
-    const snoCell = row.insertCell(0);
-    snoCell.textContent = sno++;
 
-    const cell1 = row.insertCell(1);
+    const cell1 = row.insertCell(0);
     cell1.textContent = caller;
 
     // Add First Name and Last Activity columns
-    const firstNameCell = row.insertCell(2);
-    const lastActivityCell = row.insertCell(3);
-
-    
-
-
+    const firstNameCell = row.insertCell(1);
+    const lastActivityCell = row.insertCell(2);
 
     const memberDetails = memberMap.get(caller);
     if (memberDetails) {
@@ -680,7 +670,6 @@ function segregateAndPopulateData(memberdata, activityData) {
     // Safely initialize summedTypes
     let summedTypes = {};
 
-    // Only include business type counts if pid is available
     if (pidTypesMap.size > 0) {
       pidTypesMap.forEach((pidTypeData) => {
         uniqueTypes.forEach(type => {
@@ -695,80 +684,44 @@ function segregateAndPopulateData(memberdata, activityData) {
       }
     }
 
-    
-
-    // Add click event to show details in pidTypeCountsTable
-    pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join(', ') : '--';
     pidTypeCountsCell.textContent = pidTypeCounts.length ? pidTypeCounts.join('\n') : '--';
     pidTypeCountsCell.style.whiteSpace = 'pre-line';
     pidTypeCountsCell.style.cursor = 'pointer';
-    pidTypeCountsCell.addEventListener('click', function() {
+    pidTypeCountsCell.addEventListener('click', function () {
       showPidTypeCounts(caller, pidData ? pidData.entriesWithPid : []);
     });
 
-    
-
-    // **New column for the sum of OUTGOING + INCOMING**
     const pidSumCell = row.insertCell();
     const outgoingCount = summedTypes['OUTGOING'] || 0;
     const incomingCount = summedTypes['INCOMING'] || 0;
-    const noOfDials = outgoingCount + incomingCount;
     pidSumCell.textContent = outgoingCount + incomingCount;
-  
 
-
-  const utilizationCell = row.insertCell();
+    const utilizationCell = row.insertCell();
     const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 60 : 0);
-    const utilizationValue = ((businessTalktimeMinutes * 1.67 + noOfDials) / 200) * 100;
+    const utilizationValue = ((businessTalktimeMinutes * 1.67 + outgoingCount + incomingCount) / 200) * 100;
     utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
   });
-  
 
-
-
-  // Add rows for unmatched usernames
   memberMap.forEach((memberDetails, username) => {
     if (!callerDetails.has(username) && !excludeUsernames.has(username)) {
       const row = tableBody.insertRow();
-      const snoCell = row.insertCell(0);
-      snoCell.textContent = sno++;
-
-      const callerCell = row.insertCell(1);
+      const callerCell = row.insertCell(0);
       callerCell.textContent = username;
 
-      const firstNameCell = row.insertCell(2);
+      const firstNameCell = row.insertCell(1);
       firstNameCell.textContent = memberDetails.first_name || '--';
 
-      const lastActivityCell = row.insertCell(3);
+      const lastActivityCell = row.insertCell(2);
       lastActivityCell.textContent = memberDetails.last_activity ? formatTimeAgo(memberDetails.last_activity) : '--';
 
-      // Add empty cells for the remaining columns
-      for (let i = 4; i < tableHeaderRow.cells.length; i++) {
+      for (let i = 3; i < tableHeaderRow.cells.length; i++) {
         const emptyCell = row.insertCell();
-        if (i === tableHeaderRow.cells.length - 3 || i === tableHeaderRow.cells.length - 1) {
-          emptyCell.textContent = '--'; // Time-based cells
-        } else {
-          emptyCell.textContent = '--'; // Count-based cells
-        }
+        emptyCell.textContent = '--';
       }
     }
   });
-
-  // Add CSS for sticky columns
-  const stickyColumnsStyle = `
-    th:nth-child(1), td:nth-child(1),
-    th:nth-child(2), td:nth-child(2) {
-      position: sticky;
-      left: 0;
-      background-color: rgb(248, 248, 248);   
-      z-index: 1;
-    }
-  `;
-  
-  const styleElement = document.createElement('style');
-  styleElement.innerHTML = stickyColumnsStyle;
-  document.head.appendChild(styleElement);
 }
+
 
 // Format duration in hh:mm:ss
 function formatDuration(duration) {
