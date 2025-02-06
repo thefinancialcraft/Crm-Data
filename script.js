@@ -697,9 +697,10 @@ function segregateAndPopulateData(memberdata, activityData) {
     pidSumCell.textContent = outgoingCount + incomingCount;
 
     const utilizationCell = row.insertCell();
-    const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 60 : 0);
-    const utilizationValue = ((businessTalktimeMinutes * 1.67 + outgoingCount + incomingCount) / 200) * 100;
-    utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
+const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 90 : 0);
+const utilizationValue = ((businessTalktimeMinutes * 1.67) + (outgoingCount + incomingCount) / 200);
+utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
+
   });
 
   memberMap.forEach((memberDetails, username) => {
@@ -1011,3 +1012,6 @@ function formatTimeAgo(timestamp) {
  });
 
 
+function redirect(){
+window.location.href='https://thefinancialcraft.github.io/Crm-Data/campaign.html'
+}

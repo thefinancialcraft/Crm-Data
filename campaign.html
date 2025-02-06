@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Display</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid black;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        #totalProspectsContainer {
+            margin-bottom: 20px; /* Space between total count and table */
+            /* font-size: 18px; */
+            font-weight: bold;
+        }
+        .div{
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+
+            button, select{
+                width: 100px;
+                height: 30px;
+                border-radius: 30px;
+                
+            }
+
+            button:nth-child(2){
+                background-color: rgb(82, 91, 221);
+                color: white;
+                border-color: rgb(7, 85, 169);
+            }
+
+            button:nth-child(3){
+                background-color: rgb(221, 82, 82);
+                color: white;
+                border-color: rgb(169, 7, 7);
+            }
+
+            select{
+                text-align: center;
+                width: 150px;
+            }
+
+            .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 4px solid rgba(0, 0, 0, 0.119);
+            border-top: 4px solid #ff2c2c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- New div for displaying the total prospects -->
+    <h1 id="totalProspectsContainer"></h1>
+
+    <div class="div">
+        <select id="prospectSelect">
+            <option value="" disabled selected>Select Prospect</option>
+            <option value="1">1 Prospect </option>
+            <option value="5">5 Prospect</option>
+            <option value="50">50 Prospect</option>
+            <option value="100">100 Prospect</option>
+            <option value="500">500 Prospect</option>
+            <option value="1000">1000 Prospect</option>
+        </select>
+        
+        <button id="charnBtn">Charn</button>
+        <button id="charnAllBtn">Charn All</button>
+        <div id="spinner" class="spinner"></div>
+    </div>
+    
+
+    <!-- Container for the table -->
+    <div id="tableContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="campaign.js"></script> <!-- Your JavaScript file -->
+</body>
+</html>
