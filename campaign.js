@@ -139,9 +139,9 @@ function makeFreshData(prospectIds) {
             const requestBody = {
                 querydata: {
                     _id: id,
-                    removeAssignTo: false,
-                    removeHistory: false,
-                    removeSchedules: false,
+                    removeAssignTo: true,
+                    removeHistory: true,
+                    removeSchedules: true,
                 },
             };
 
