@@ -112,6 +112,9 @@ body::-webkit-scrollbar{
     align-items: center;
     margin: 0px;
     height: 80px;
+    flex-direction: column;
+    margin-bottom: 25px;
+    margin-top: 20px;
 
 .date-selection{
     /* width: 200px; */
@@ -119,7 +122,7 @@ body::-webkit-scrollbar{
     display: flex;
     flex-direction: row;
     padding-left: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     margin-top: 10px;
 
     h2{
