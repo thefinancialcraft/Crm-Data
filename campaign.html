@@ -36,12 +36,18 @@
             }
 
             button:nth-child(2){
+                background-color: rgb(39, 168, 24);
+                color: white;
+                border-color: rgb(24, 95, 16);
+            }
+
+            button:nth-child(4){
                 background-color: rgb(82, 91, 221);
                 color: white;
                 border-color: rgb(7, 85, 169);
             }
 
-            button:nth-child(3){
+            button:nth-child(5){
                 background-color: rgb(221, 82, 82);
                 color: white;
                 border-color: rgb(169, 7, 7);
@@ -73,11 +79,22 @@
 </head>
 <body>
 
+    <h1>Charn CRM Data</h1>
 
-    <!-- New div for displaying the total prospects -->
-    <h1 id="totalProspectsContainer"></h1>
+
+   
 
     <div class="div">
+       
+        <select id="campId">
+            <option value="" disabled selected>Select Grade</option>
+            <option value="666175055842a2f98bfae0b9">Grade 1</option>
+            <option value="668e68fda7b5c31a5d763a01">Grade 2</option>
+            <option value="6641d5c7d8c4855dca69c48d">Grade Elite</option>
+        </select>
+
+        <button id="srchGrade">Search</button>
+        
         <select id="prospectSelect">
             <option value="" disabled selected>Select Prospect</option>
             <option value="1">1 Prospect </option>
@@ -91,8 +108,10 @@
         <button id="charnBtn">Charn</button>
         <button id="charnAllBtn">Charn All</button>
         <div id="spinner" class="spinner"></div>
+
     </div>
     
+    <h1 id="totalProspectsContainer"></h1>
 
     <!-- Container for the table -->
     <div id="tableContainer"></div>

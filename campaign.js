@@ -1,5 +1,20 @@
-// Fetch and display data (this function will get the prospect data)
+document.getElementById("srchGrade").addEventListener("click", fetchAndDisplayData);
+
 async function fetchAndDisplayData() {
+    document.getElementById('totalProspectsContainer').textContent = "";
+    document.getElementById('tableContainer').textContent = "";
+    const selectedCampId = document.getElementById("campId").value;
+
+    if (!selectedCampId) {
+        console.log("⚠️ Please select a grade.");
+        const totalMessage = document.createElement("p");
+    totalMessage.textContent = `⚠️ Please select a grade.`;
+    const totalDiv = document.getElementById("totalProspectsContainer");
+    totalDiv.appendChild(totalMessage);
+
+        return;
+    }
+
     const url = "https://web.betyphon.in/api/action/getPaginationData";
 
     const headers = {
@@ -12,15 +27,15 @@ async function fetchAndDisplayData() {
         root: "prospects",
         querydata: {
             disposition: { $in: ["6641d5ded8c4855dca69c4bc"] },
-            cid: "666175055842a2f98bfae0b9",
+            cid: selectedCampId,  // Dynamically setting cid
             $and: [{ admin: "smilingajai@gmail.com" }, { IsActive: true }],
             admin: "smilingajai@gmail.com",
-            campId: "666175055842a2f98bfae0b9",
+            campId: selectedCampId, // Dynamically setting campId
             IsActive: true,
         },
         body: {
             limit: 0,
-            skip: 0, // Removed limit for fetching all data
+            skip: 0,
             sort: { createdOn: -1 },
         },
     };
@@ -39,7 +54,6 @@ async function fetchAndDisplayData() {
         const result = await response.json();
         
         if (result?.data?.activityData && result.data.activityData.length > 0) {
-            // Pass the fetched data to another function to handle further
             handleFetchedData(result.data.activityData);
         } else {
             console.log("⚠️ No data found.");
