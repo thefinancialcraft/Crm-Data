@@ -1,6 +1,7 @@
 document.getElementById("srchGrade").addEventListener("click", fetchAndDisplayData);
 
 async function fetchAndDisplayData() {
+    document.getElementById('spinner').style.display = "block";
     document.getElementById('totalProspectsContainer').textContent = "";
     document.getElementById('tableContainer').textContent = "";
     const selectedCampId = document.getElementById("campId").value;
@@ -11,6 +12,7 @@ async function fetchAndDisplayData() {
     totalMessage.textContent = `⚠️ Please select a grade.`;
     const totalDiv = document.getElementById("totalProspectsContainer");
     totalDiv.appendChild(totalMessage);
+    document.getElementById('spinner').style.display = "none";
 
         return;
     }
@@ -55,11 +57,14 @@ async function fetchAndDisplayData() {
         
         if (result?.data?.activityData && result.data.activityData.length > 0) {
             handleFetchedData(result.data.activityData);
+            document.getElementById('spinner').style.display = "none";
         } else {
             console.log("⚠️ No data found.");
+            document.getElementById('spinner').style.display = "none";
         }
     } catch (error) {
         console.error("❌ Error fetching data:", error);
+        document.getElementById('spinner').style.display = "none";  
     }
 }
 
@@ -264,5 +269,4 @@ document.getElementById('charnAllBtn').addEventListener('click', () => {
         document.getElementById('spinner').style.display = "none";
     }
 });
-
 
