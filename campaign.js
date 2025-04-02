@@ -159,7 +159,7 @@ function makeFreshData(prospectIds) {
                 querydata: {
                     _id: id,
                     removeAssignTo: true,
-                    removeHistory: true,
+                    removeHistory: false,
                     removeSchedules: true,
                 },
             };
