@@ -33,7 +33,7 @@
     </div>
      <div class="date-selection">
       
-    <button style="background-color: coral;" onclick="convertToImage(this)">Print</button>
+    <button style="background-color: coral;"  onclick="convertToImage(this)">Print</button>
     <button style="background-color: rgb(255, 80, 255);" onclick="followUpshow()">Calls</button>
     <button style="background-color: rgb(80, 109, 255);" onclick="redirect()">Charn Data</button>
      </div>
@@ -138,6 +138,12 @@
  
   <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+  document.getElementById("btnPrint").style.display = "none";
+  document.getElementById("btnCalls").style.display = "none";
+  document.getElementById("btnCharn").style.display = "none";
+</script>
+
     
 </body>
 </html>
