@@ -525,7 +525,7 @@ function segregateAndPopulateData(memberdata, activityData) {
   const callerPidsDetails = new Map();
 
   // List of usernames to exclude
-  const excludeUsernames = new Set(['smilingajai@gmail.com', 'Akash@tfc.com', 'anuragAm@tfc.com', 'ujjwal@tfc.com']);
+  const excludeUsernames = new Set(['smilingajai@gmail.com']);
 
   // Map member details by email (username) for quick lookup
   const memberMap = new Map();
@@ -697,7 +697,7 @@ function segregateAndPopulateData(memberdata, activityData) {
     pidSumCell.textContent = outgoingCount + incomingCount;
 
     const utilizationCell = row.insertCell();
-const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 90 : 0);
+const businessTalktimeMinutes = (pidData && pidData.totalPidDuration ? pidData.totalPidDuration / 60 : 0);
 const utilizationValue = ((businessTalktimeMinutes * 1.67) + (outgoingCount + incomingCount) / 200);
 utilizationCell.textContent = utilizationValue ? utilizationValue.toFixed(2) + '%' : '--';
 
